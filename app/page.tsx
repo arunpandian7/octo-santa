@@ -1,101 +1,212 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Trash2, Gift, GripVertical, Edit2, Save, X } from "lucide-react";
+
+const SecretSantaWishlist = () => {
+  const [wishlist, setWishlist] = useState([]);
+  const [newItem, setNewItem] = useState("");
+  const [newItemLink, setNewItemLink] = useState("");
+  const [newItemPrice, setNewItemPrice] = useState("");
+  const [editingItem, setEditingItem] = useState(null);
+
+  const addWishlistItem = () => {
+    if (newItem.trim() === "") return;
+
+    const newWishlistItem = {
+      id: `item-${Date.now()}`,
+      name: newItem,
+      link: newItemLink,
+      price: newItemPrice ? `$${parseFloat(newItemPrice).toFixed(2)}` : "N/A",
+    };
+
+    setWishlist([...wishlist, newWishlistItem]);
+    resetInputs();
+  };
+
+  const resetInputs = () => {
+    setNewItem("");
+    setNewItemLink("");
+    setNewItemPrice("");
+    setEditingItem(null);
+  };
+
+  const removeWishlistItem = (id) => {
+    setWishlist(wishlist.filter((item) => item.id !== id));
+  };
+
+  const startEditItem = (item) => {
+    setEditingItem(item);
+    setNewItem(item.name);
+    setNewItemLink(item.link || "");
+    setNewItemPrice(item.price !== "N/A" ? item.price.replace("$", "") : "");
+  };
+
+  const saveEditedItem = () => {
+    if (!editingItem) return;
+
+    const updatedWishlist = wishlist.map((item) =>
+      item.id === editingItem.id
+        ? {
+            ...item,
+            name: newItem,
+            link: newItemLink,
+            price: newItemPrice
+              ? `$${parseFloat(newItemPrice).toFixed(2)}`
+              : "N/A",
+          }
+        : item,
+    );
+
+    setWishlist(updatedWishlist);
+    resetInputs();
+  };
+
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const reorderedWishlist = Array.from(wishlist);
+    const [reorderedItem] = reorderedWishlist.splice(result.source.index, 1);
+    reorderedWishlist.splice(result.destination.index, 0, reorderedItem);
+
+    setWishlist(reorderedWishlist);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <Card className="w-full max-w-md mx-auto mt-8">
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Gift className="mr-2" /> Secret Santa Wishlist
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Input
+            placeholder="Item Name"
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+          />
+          <Input
+            placeholder="Item Link (Optional)"
+            value={newItemLink}
+            onChange={(e) => setNewItemLink(e.target.value)}
+          />
+          <Input
+            type="number"
+            placeholder="Price (Optional)"
+            value={newItemPrice}
+            onChange={(e) => setNewItemPrice(e.target.value)}
+            className="w-full"
+          />
+          {editingItem ? (
+            <div className="flex space-x-2">
+              <Button onClick={saveEditedItem} className="flex-grow">
+                <Save className="mr-2 h-4 w-4" /> Save Changes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={resetInputs}
+                className="flex-grow"
+              >
+                <X className="mr-2 h-4 w-4" /> Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={addWishlistItem} className="w-full">
+              Add to Wishlist
+            </Button>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {wishlist.length > 0 && (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="wishlist">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="mt-6 space-y-2"
+                >
+                  {wishlist.map((item, index) => (
+                    <Draggable
+                      key={item.id}
+                      draggableId={item.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className="flex justify-between items-center p-3 bg-gray-100 rounded border"
+                        >
+                          <div {...provided.dragHandleProps} className="mr-2">
+                            <GripVertical className="text-gray-500" />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="font-medium">
+                              <span className="mr-2 text-gray-500">
+                                #{index + 1}
+                              </span>
+                              {item.name}
+                            </div>
+                            {item.link && (
+                              <a
+                                href={item.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 text-sm"
+                              >
+                                View Link
+                              </a>
+                            )}
+                            <div className="text-gray-500 text-sm">
+                              {item.price}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => startEditItem(item)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => removeWishlistItem(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
+      </CardContent>
+      <CardFooter>
+        <div className="text-center w-full text-gray-500">
+          Drag to reorder, click edit to modify items
+        </div>
+      </CardFooter>
+    </Card>
   );
-}
+};
+
+export default SecretSantaWishlist;
