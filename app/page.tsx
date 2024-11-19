@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 import {
   Card,
   CardHeader,
@@ -80,7 +85,7 @@ const SecretSantaWishlist: React.FC = () => {
     resetInputs();
   };
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
     const reorderedWishlist = Array.from(wishlist);
