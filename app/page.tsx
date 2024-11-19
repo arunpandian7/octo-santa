@@ -13,20 +13,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Gift, GripVertical, Edit2, Save, X } from "lucide-react";
 
-const SecretSantaWishlist = () => {
-  const [wishlist, setWishlist] = useState([]);
-  const [newItem, setNewItem] = useState("");
-  const [newItemLink, setNewItemLink] = useState("");
-  const [newItemPrice, setNewItemPrice] = useState("");
-  const [editingItem, setEditingItem] = useState(null);
+// Define the type for wishlist items
+interface WishlistItem {
+  id: string;
+  name: string;
+  link?: string;
+  price: string;
+}
+
+const SecretSantaWishlist: React.FC = () => {
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  const [newItem, setNewItem] = useState<string>("");
+  const [newItemLink, setNewItemLink] = useState<string>("");
+  const [newItemPrice, setNewItemPrice] = useState<string>("");
+  const [editingItem, setEditingItem] = useState<WishlistItem | null>(null);
 
   const addWishlistItem = () => {
     if (newItem.trim() === "") return;
 
-    const newWishlistItem = {
+    const newWishlistItem: WishlistItem = {
       id: `item-${Date.now()}`,
       name: newItem,
-      link: newItemLink,
+      link: newItemLink || undefined,
       price: newItemPrice ? `$${parseFloat(newItemPrice).toFixed(2)}` : "N/A",
     };
 
@@ -41,11 +49,11 @@ const SecretSantaWishlist = () => {
     setEditingItem(null);
   };
 
-  const removeWishlistItem = (id) => {
+  const removeWishlistItem = (id: string) => {
     setWishlist(wishlist.filter((item) => item.id !== id));
   };
 
-  const startEditItem = (item) => {
+  const startEditItem = (item: WishlistItem) => {
     setEditingItem(item);
     setNewItem(item.name);
     setNewItemLink(item.link || "");
@@ -60,7 +68,7 @@ const SecretSantaWishlist = () => {
         ? {
             ...item,
             name: newItem,
-            link: newItemLink,
+            link: newItemLink || undefined,
             price: newItemPrice
               ? `$${parseFloat(newItemPrice).toFixed(2)}`
               : "N/A",
@@ -72,7 +80,7 @@ const SecretSantaWishlist = () => {
     resetInputs();
   };
 
-  const onDragEnd = (result) => {
+  const onDragEnd = (result: any) => {
     if (!result.destination) return;
 
     const reorderedWishlist = Array.from(wishlist);
@@ -86,7 +94,7 @@ const SecretSantaWishlist = () => {
     <Card className="w-full max-w-md mx-auto mt-8">
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Gift className="mr-2" /> Secret Santa Wishlist
+          <Gift className="mr-2" /> WishWhisper
         </CardTitle>
       </CardHeader>
       <CardContent>
